@@ -1,0 +1,230 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Bug;
+use App\Parametre;
+use App\bug_arametre;
+use App\User;
+use App\Domain;
+use Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+
+class BugController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $bugs = Bug::orderBy('created_at', 'DESC')->latest()->paginate(10);
+        return view('front.bug.index')
+            ->with(['bugs' =>$bugs]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        $user = User::all();
+        $domain = Domain::all();
+        $categorie = Parametre::where('type','categorie')->get();
+        $reproductibilite = Parametre::where('type','reproductibilite')->get();
+        $impact = Parametre::where('type','impact')->get();
+        $priorite = Parametre::where('type','priorite')->get();
+        //dump($domain);die();
+        return view('front.bug.create')->with([
+            'user'=>$user,
+            'domain'=>$domain, 
+            'categorie'=>$categorie,
+            'reproductibilite'=>$reproductibilite,
+            'impact'=>$impact,
+            'priorite'=>$priorite,
+        ]); 
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {   
+        $request->validate([
+            'categorie' => 'required',
+            'reproductibilite' => 'required',
+            'impact' => 'required',
+            'priorite' => 'required',
+            'resume' => 'required',
+            'description' => 'required',
+            'visibilite' => 'required',
+            'domain_id' => 'required',
+            'user_id' => 'required',
+            'img' => 'required',  
+            'libelle' => 'required',
+        ]) ;
+
+        //dd($request->resume); die();
+
+           $img = $request->file('img') ;
+            $new_name = rand().'.'.$img->getClientOriginalExtension();
+            $img->move(public_path('img/bug'),$new_name);
+            $parametre_id = array($request['categorie'], $request['reproductibilite'],$request['impact'],$request['priorite'] );
+
+        $bugs = Bug::create([
+            'libelle' => $request['libelle'],
+            'resume' => $request['resume'] ,
+            'description' => $request['description'] ,
+            'visibilite' => $request['visibilite'] ,
+            'domain_id' => $request['domain_id'],
+            'user_id' => $request['user_id'],
+            'img' => $new_name,
+            
+        ]); 
+    
+        $bugs->parametre()->attach($parametre_id);
+        return redirect()->route('bug.index')
+                        ->with('success','Bug ajouté avec succès !'); 
+    }   
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Bug  $bug
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Bug $bug)
+    {
+          $user = User::all();
+        // $domain = Domain::all();
+        // $categorie = Parametre::where('type','categorie')->get();
+        // $reproductibilite = Parametre::where('type','reproductibilite')->get();
+        // $impact = Parametre::where('type','impact')->get();
+        // $priorite = Parametre::where('type','priorite')->get();
+        //dump($domain);die();
+        $domain = Domain::all();
+        $param = DB::table('bug_parametre')
+             ->join('bugs', 'bugs.id', '=', 'bug_parametre.bug_id')
+             ->join('parametres', 'parametres.id', '=', 'bug_parametre.parametre_id')
+             ->where('bug_parametre.bug_id', $bug->id)
+             ->get();
+           
+             $cat = $param[0]->libelle;
+             $rep = $param[1]->libelle;
+             $imp = $param[2]->libelle;
+             $pri = $param[3]->libelle;
+           //dump($cat, $rep, $imp, $pri);die();
+        return view('front.bug.show',compact('bug'))->with([
+            'user'=>$user,
+            'domain'=>$domain,  
+           'cat' => $cat,
+           'rep' => $rep,
+           'imp' => $imp,
+           'pri' => $pri,
+        ]);//
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Bug  $bug
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Bug $bug)
+    {
+         
+    
+         $domain = Domain::all();
+         $categorie = Parametre::where('type','categorie')->get();
+         $reproductibilite = Parametre::where('type','reproductibilite')->get();
+         $impact = Parametre::where('type','impact')->get();
+         $priorite = Parametre::where('type','priorite')->get();
+    
+         $param = DB::table('bug_parametre')
+             ->join('bugs', 'bugs.id', '=', 'bug_parametre.bug_id')
+             ->join('parametres', 'parametres.id', '=', 'bug_parametre.parametre_id')
+             ->where('bug_parametre.bug_id', $bug->id)
+             ->get();
+           
+             $cat = $param[0]->libelle;
+             $rep = $param[1]->libelle;
+             $imp = $param[2]->libelle;
+             $pri = $param[3]->libelle;
+     
+        return view('front.bug.edit',compact('bug'))->with([
+    
+           'cat' => $cat,
+           'rep' => $rep,
+           'imp' => $imp,
+           'pri' => $pri,
+           'categorie'=>$categorie,
+           'impact'=>$impact,
+           'priorite'=>$priorite,
+           'reproductibilite'=>$reproductibilite,
+           'domain' => $domain ,
+
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Bug  $bug
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Bug $bug)
+    {
+      
+        $request->validate([
+            'categorie' => 'required',
+            'reproductibilite' => 'required',
+            'impact' => 'required',
+            'priorite' => 'required',
+            'resume' => 'required',
+            'description' => 'required',
+            'visibilite' => 'required',
+            'domain_id' => 'required',
+            'user_id' => 'required',
+            'img' => 'required',   
+            'libelle' => 'required',
+        ]) ;
+            $img = $request->file('img') ;
+            $new_name = rand().'.'.$img->getClientOriginalExtension();
+            $img->move(public_path('img/bug'),$new_name);
+            $parametre_id = array($request['categorie'], $request['reproductibilite'],$request['impact'],$request['priorite'] );
+            $bug->resume = $request['resume'];
+            $bug->description = $request['description'];
+            $bug->img = $new_name ;
+            $bug->visibilite = $request['visibilite'];
+            $bug->domain_id = $request['domain_id'];
+            $bug->user_id = $request['user_id'];
+            $bug->libelle = $request['libelle'];
+
+            $bug->save();
+            $bug->parametre()->sync($parametre_id);
+
+        return redirect()->route('bug.index')
+                        ->with('success','Bug Modifié avec succès !'); 
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Bug  $bug
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Bug $bug)
+    { 
+        $bug->delete();
+      $bug->parametre()->detach('parametre');
+      return redirect()->route('bug.index')->with('success','Bug supprimé avec succès');  //
+    }
+}
