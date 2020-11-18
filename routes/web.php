@@ -22,6 +22,37 @@ Route::post('/admin/login','Auth\LoginController@adminLogin')->name('admin-login
 Route::resource('/administration/bug','BugController');
 Route::post('/comment/store', 'CommentController@store')->name('comment.add');
 
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+
+Route::match(['get','post'],'/admin','AdminController@index');
+Route::get('/admin/home','AdminController@admin');
+
+Route::match(['get','post'],'/','AdministrationController@index')->name('connexion');
+Route::get('/administration','AdministrationController@admin')->name('home-admin');
+Route::post('/admin/login','Auth\LoginController@adminLogin')->name('admin-login');
+Route::resource('/administration/bug','BugController');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+
+Route::match(['get','post'],'/admin','AdminController@index');
+Route::get('/admin/home','AdminController@admin');
+
+Route::match(['get','post'],'/','AdministrationController@index')->name('connexion');
+Route::get('/administration','AdministrationController@admin')->name('home-admin');
+Route::post('/admin/login','Auth\LoginController@adminLogin')->name('admin-login');
+Route::resource('/administration/bug','BugController');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+Route::post('/comment/store', 'CommentController@store')->name('comment.add');
+
+
 
 
 //domain route
